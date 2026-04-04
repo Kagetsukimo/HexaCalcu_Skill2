@@ -314,26 +314,6 @@
             </select>
           </div>
         
-        <div class="form-group">
-            <label for="dungeonSelect">副本</label>
-            <select id="dungeonSelect" class= "reward-select">
-                <option value="0">選擇副本</option>
-                <option value="1">高山</option>
-                <option value="2">安格洛</option>
-            </select>
-        </div>
-        <div class="form-group">
-            <label for="dungeonCompleted">本周副本已打</label>
-            <input type="checkbox" class="inputone" id="dungeonCompleted">
-        </div>
-        <div class="form-group">
-            <label for="dungeonRewards">副本獎勵</label>
-            <select id="dungeonRewards" class="reward-select">
-                <option value="-1">沒打</option>
-                <option value="0">免費</option>
-            </select>
-        </div>
-        
         <button class="btn" onclick="calculate()">計算</button>
         <div class="form-group">
             <div class="result">
@@ -367,17 +347,6 @@
             </div>
         </div>
         <div class="form-group">
-            <div class="result">
-                <p>純每日天數: <span id="remainDaysLabel">0</span></p>
-            </div>
-            <div class="result">
-                <p>不計共用天數: <span id="noCommonRemainDaysLabel">0</span></p>
-            </div>
-            <div class="result">
-                <p>靈魂每日天數: <span id="soulRemainDaysLabel">0</span></p>
-            </div>
-        </div>
-        <div class="form-group">
             <div class="result-text">
                 <p>進度會計算剩餘碎片以及氣息 目標等級則不計算</p>
             </div>
@@ -390,15 +359,6 @@
             <div class="result">
                 <p>目標等級所需靈魂: <span id="objectLevelNeedsSoul">0</span></p>
             </div>
-        </div>                    
-        <div class="form-group">
-            <div class="result">
-                <p>目標等級所需天數: <span id="objectLevelNeedsDays">0</span></p> 
-            </div>
-            <div class="result"></div>
-            <div class="result">
-                <p>目標等級靈魂天數: <span id="objectSoulNeedsDays">0</span></p> 
-            </div>  
         </div>
         <div class="form-group">
             <div class="result-text">
@@ -549,10 +509,6 @@
             var soul = parseInt(document.getElementById('currentsoul').value) || 0;
             var souls = parseInt(document.getElementById('currentsouls').value) || 0;
             var jobSelect = document.getElementById('jobSelect').value || "選擇職業";
-            //副本完成狀況與種類
-            var nowDungeon = document.getElementById('dungeonCompleted').checked;
-            var dungeonRewards = parseInt(document.getElementById('dungeonRewards').value);
-            var dungeonSelect = parseInt(document.getElementById('dungeonSelect').value);
             //其他值
             var remainskillfrags1 = document.getElementById('remainskillfrags1').value;
             var remainskillfrags2 = document.getElementById('remainskillfrags2').value;
@@ -569,7 +525,7 @@
             var currentLevel = [skillLevel1, skillLevel2, masterLevel1, masterLevel2, masterLevel3, masterLevel4, enhancementLevel1, enhancementLevel2, enhancementLevel3, enhancementLevel4, commonLevel, remainFragments];
             //目標等級
             var objectLevel = [objectskillLevel1, objectskillLevel2, objectmasterLevel1, objectmasterLevel2, objectmasterLevel3, objectmasterLevel4, objectenhancementLevel1, objectenhancementLevel2, objectenhancementLevel3, objectenhancementLevel4, objectcommonLevel]
-            for(let i = 0; i < 10; i++){
+            for(let i = 0; i < objectLevel.length; i++){
                 if(currentLevel[i] > objectLevel[i]){
                     objectLevel[i] = currentLevel[i];
                 }
@@ -597,8 +553,8 @@
             var oe3 = enhancementLevelArr.slice(0, objectLevel[8]).reduce((a, b) => a + b, 0);
             var oe4 = enhancementLevelArr.slice(0, objectLevel[9]).reduce((a, b) => a + b, 0);
             var oc1 = commonLevelArr.slice(0, objectLevel[10]).reduce((a, b) => a + b, 0);
-            var currentConsumed = s1 + s2 + m1 + m2 + m3 + m4 + e1 + e2 + e3 + e4 + c1 + currentLevel[10];
-            var noCommonCurrentConsumed = s1 + s2 + m1 + m2 + m3 + m4 + e1 + e2 + e3 + e4 + currentLevel[10];
+            var currentConsumed = s1 + s2 + m1 + m2 + m3 + m4 + e1 + e2 + e3 + e4 + c1 + currentLevel.at(-1);
+            var noCommonCurrentConsumed = s1 + s2 + m1 + m2 + m3 + m4 + e1 + e2 + e3 + e4 + currentLevel.at(-1);
             var needFrag         = allFrag - currentConsumed;
             var noCommonNeedFrag = noCommonAllFrag - noCommonCurrentConsumed;
             var objectNeedFrags = [os1-s1, os2-s2, om1-m1, om2-m2, om3-m3, om4-m4, oe1-e1, oe2-e2, oe3-e3, oe4-e4, oc1-c1];            
@@ -645,212 +601,7 @@
             if (noCommonCurrentConsumed >= noCommonAllFrag){
                 noCommonNeedFrag = 0;
             }
-            //碎片天數計算
-            //獲取當天星期,每日、每周、副本獲得量
-            var now = new Date();
-            var hnowWeekday = now.getDay();
-            var nowWeekday;
-            if (hnowWeekday == 0){
-                nowWeekday = 6;
-            } else {
-                nowWeekday = hnowWeekday - 1;
-            }
-            var dailyfrag = 12;
-            var weeeklyfrag = 50;
-            var dungeonfrag = 0;
-            if(dungeonRewards == -1 || dungeonSelect == 0){
-                dungeonfrag = 0;
-            }else if (dungeonRewards == 0 && dungeonSelect == 1) {
-                dungeonfrag = 30;
-            }else if(dungeonRewards == 0 && dungeonSelect == 2){
-                    dungeonfrag = 45;
-            }
-            var wholeweekfrags = dailyfrag * 7 + weeeklyfrag + dungeonfrag;
-            //根據副本進行狀況計算當周
-            var fragmentsCollected = 0;
-            var daysNeeded = 0;
-            if (needFrag >= wholeweekfrags){
-                if (nowWeekday < 2) {
-                    fragmentsCollected = wholeweekfrags - dailyfrag * (nowWeekday + 1);
-                    daysNeeded = 6 - nowWeekday;
-                } else if (nowWeekday == 2) {
-                    fragmentsCollected = wholeweekfrags - (dailyfrag * 3 + weeeklyfrag);
-                    daysNeeded = 4;
-                } else if (nowWeekday == 3 && !nowDungeon) {
-                    fragmentsCollected = wholeweekfrags - (dailyfrag * 4 + weeeklyfrag);
-                    daysNeeded = 3;
-                } else if (nowWeekday == 4 && !nowDungeon) {
-                    fragmentsCollected = wholeweekfrags - (dailyfrag * 5 + weeeklyfrag);
-                    daysNeeded = 2;
-                } else if (nowWeekday == 5 && !nowDungeon) {
-                    fragmentsCollected = wholeweekfrags - (dailyfrag * 6 + weeeklyfrag);
-                    daysNeeded = 1;
-                } else if (nowWeekday == 6 && nowDungeon) {
-                    fragmentsCollected = dungeonfrag;
-                } else {
-                    fragmentsCollected = wholeweekfrags - (dailyfrag * (nowWeekday + 1) + weeeklyfrag + dungeonfrag);
-                    daysNeeded = 6 - nowWeekday;
-                }
-            }else{
-                daysNeeded = 0;
-            }
-            //根據副本進行狀況計算不計共用當周
-            var noCommonFragmentsCollected = 0;
-            var noCommonDaysNeeded = 0;
-            if (noCommonNeedFrag >= wholeweekfrags){
-                if (nowWeekday < 2) {
-                    noCommonFragmentsCollected = wholeweekfrags - dailyfrag * (nowWeekday + 1);
-                    noCommonDaysNeeded = 6 - nowWeekday;
-                } else if (nowWeekday == 2) {
-                    noCommonFragmentsCollected = wholeweekfrags - (dailyfrag * 3 + weeeklyfrag);
-                    noCommonDaysNeeded = 4;
-                } else if (nowWeekday == 3 && !nowDungeon) {
-                    noCommonFragmentsCollected = wholeweekfrags - (dailyfrag * 4 + weeeklyfrag);
-                    noCommonDaysNeeded = 3;
-                } else if (nowWeekday == 4 && !nowDungeon) {
-                    noCommonFragmentsCollected = wholeweekfrags - (dailyfrag * 5 + weeeklyfrag);
-                    noCommonDaysNeeded = 2;
-                } else if (nowWeekday == 5 && !nowDungeon) {
-                    noCommonFragmentsCollected = wholeweekfrags - (dailyfrag * 6 + weeeklyfrag);
-                    noCommonDaysNeeded = 1;
-                } else if (nowWeekday == 6 && nowDungeon) {
-                    noCommonFragmentsCollected = dungeonfrag;
-                } else {
-                    noCommonFragmentsCollected = wholeweekfrags - (dailyfrag * (nowWeekday + 1) + weeeklyfrag + dungeonfrag);
-                    noCommonDaysNeeded = 6 - nowWeekday;
-                }
-            }else{
-                noCommonDaysNeeded = 0;
-            }
-            //當周以外的剩餘天數
-            while ((needFrag - fragmentsCollected) > wholeweekfrags) {
-                daysNeeded += 7;
-                fragmentsCollected += wholeweekfrags;
-            }
-            //不計共用當周以外的剩餘天數
-            while ((noCommonNeedFrag - noCommonFragmentsCollected) > wholeweekfrags) {
-                noCommonDaysNeeded += 7;
-                noCommonFragmentsCollected += wholeweekfrags;
-            }
-            //最後一周的天數    
-            var remainingFragments = needFrag - fragmentsCollected;
-            if(remainingFragments == 0){
-                daysNeeded = 0;
-            } else if (remainingFragments <= dailyfrag) {
-                daysNeeded += 1;
-            } else if (remainingFragments <= dailyfrag * 2) {
-                daysNeeded += 2;
-            } else if (remainingFragments <= (dailyfrag * 3) + weeeklyfrag) {
-                daysNeeded += 3;
-            } else if (remainingFragments <= ((dailyfrag * 4) + weeeklyfrag + dungeonfrag)) {
-                daysNeeded += 4;
-            } else if (remainingFragments <= ((dailyfrag * 5) + weeeklyfrag + dungeonfrag)) {
-                daysNeeded += 5;
-            } else if (remainingFragments <= ((dailyfrag * 6) + weeeklyfrag + dungeonfrag)) {
-                daysNeeded += 6;
-            } else if (remainingFragments <= ((dailyfrag * 7) + weeeklyfrag + dungeonfrag)) {
-                daysNeeded += 7;
-            }
-            //不計共用最後一周的天數 
-            var noCommonRemainingFragments = noCommonNeedFrag - noCommonFragmentsCollected;
-            if(noCommonRemainingFragments == 0){
-                noCommonDaysNeeded = 0;
-            } else if (noCommonRemainingFragments <= dailyfrag) {
-                noCommonDaysNeeded += 1;
-            } else if (noCommonRemainingFragments <= (dailyfrag * 2)) {
-                noCommonDaysNeeded += 2;
-            } else if (noCommonRemainingFragments <= (dailyfrag * 3) + weeeklyfrag) {
-                noCommonDaysNeeded += 3;
-            } else if (noCommonRemainingFragments <= ((dailyfrag * 4) + weeeklyfrag + dungeonfrag)) {
-                noCommonDaysNeeded += 4;
-            } else if (noCommonRemainingFragments <= ((dailyfrag * 5) + weeeklyfrag + dungeonfrag)) {
-                noCommonDaysNeeded += 5;
-            } else if (noCommonRemainingFragments <= ((dailyfrag * 6) + weeeklyfrag + dungeonfrag)) {
-                noCommonDaysNeeded += 6;
-            } else if (noCommonRemainingFragments <= ((dailyfrag * 7) + weeeklyfrag + dungeonfrag)) {
-                noCommonDaysNeeded += 7;
-            }
-            // 計算到達目標所需天數
-            var objectFragCollects = 0;
-            var objectNeedDays = 0;
-            //根據副本進行狀況計算當周
-            if (objectNeedFrag >= wholeweekfrags){
-                if (nowWeekday < 2) {
-                    objectFragCollects = wholeweekfrags - dailyfrag * (nowWeekday + 1);
-                    objectNeedDays = 6 - nowWeekday;
-                } else if (nowWeekday == 2) {
-                    objectFragCollects = wholeweekfrags - (dailyfrag * 3 + weeeklyfrag);
-                    objectNeedDays = 4;
-                } else if (nowWeekday == 3 && !nowDungeon) {
-                    objectFragCollects = wholeweekfrags - (dailyfrag * 4 + weeeklyfrag);
-                    objectNeedDays = 3;
-                } else if (nowWeekday == 4 && !nowDungeon) {
-                    objectFragCollects = wholeweekfrags - (dailyfrag * 5 + weeeklyfrag);
-                    objectNeedDays = 2;
-                } else if (nowWeekday == 5 && !nowDungeon) {
-                    objectFragCollects = wholeweekfrags - (dailyfrag * 6 + weeeklyfrag);
-                    objectNeedDays = 1;
-                } else if (nowWeekday == 6 && nowDungeon) {
-                    objectFragCollects = dungeonfrag;
-                } else {
-                    objectFragCollects = wholeweekfrags - (dailyfrag * (nowWeekday + 1) + weeeklyfrag + dungeonfrag);
-                    objectNeedDays = 6 - nowWeekday;
-                }
-            }else{
-                objectNeedDays = 0;
-            }
-            //當周以外的剩餘天數
-            while ((objectNeedFrag - objectFragCollects) > wholeweekfrags) {
-                objectNeedDays += 7;
-                objectFragCollects += wholeweekfrags;
-            }
-            //最後一周的天數    
-            var objectremainingFragments = objectNeedFrag - objectFragCollects;
-            if(objectremainingFragments == 0){
-                objectNeedDays = 0;
-            } else if (objectremainingFragments <= dailyfrag) {
-                objectNeedDays += 1;
-            } else if (objectremainingFragments <= dailyfrag * 2) {
-                objectNeedDays += 2;
-            } else if (objectremainingFragments <= (dailyfrag * 3) + weeeklyfrag) {
-                objectNeedDays += 3;
-            } else if (objectremainingFragments <= ((dailyfrag * 4) + weeeklyfrag + dungeonfrag)) {
-                objectNeedDays += 4;
-            } else if (objectremainingFragments <= ((dailyfrag * 5) + weeeklyfrag + dungeonfrag)) {
-                objectNeedDays += 5;
-            } else if (objectremainingFragments <= ((dailyfrag * 6) + weeeklyfrag + dungeonfrag)) {
-                objectNeedDays += 6;
-            } else if (objectremainingFragments <= ((dailyfrag * 7) + weeeklyfrag + dungeonfrag)) {
-                objectNeedDays += 7;
-            }
-            // 氣息天數計算
-            var needDaysSoul = 0;
-            var soulCollected = 0;
-            var soulsCollected = souls;
-            //全部氣息天數計算
-            while(needSoul > soulCollected){
-                soulsCollected += 600;
-                needDaysSoul++;
-                if(soulsCollected >= 1000){
-                    soulsCollected -= 1000;
-                    soulCollected++;
-                }
-            }
-            //目標氣息天數計算
-            var objectNeedDaysSoul = 0;
-            var objectSoulCollected = 0;
-            var objectsoulsCollected = souls;
-            while(objectNeedSoul > objectSoulCollected){
-                objectsoulsCollected += 600;
-                objectNeedDaysSoul++;
-                if(objectsoulsCollected >= 1000){
-                    objectsoulsCollected -= 1000;
-                    objectSoulCollected++;
-                }
-            }
-            if(consumedSoul >= allSoul){
-                needSoul = 0;
-            }
+           
             //更新結果
             document.getElementById('remainskillfrags1').innerText ='已消耗:'+s1s+'/'+s1+'\n共還需:'+(all_skill_soul-s1s)+'/'+(all_skill_frags - s1)+' 目標還需:'+objectNeedSouls[0]+'/'+objectNeedFrags[0];
             document.getElementById('remainskillfrags2').innerText ='已消耗:'+s2s+'/'+s2+'\n共還需:'+(all_skill_soul2-s2s)+'/'+(all_skill_frags2 - s2)+' 目標還需:'+objectNeedSouls[1]+'/'+objectNeedFrags[1];
@@ -875,16 +626,6 @@
             document.getElementById('noCommonFragsProgressLabel').innerText = ((noCommonCurrentConsumed / noCommonAllFrag) * 100).toFixed(2) + '%';
             document.getElementById('soulProgressLabel').innerText = ((consumedSoul / allSoul) * 100).toFixed(2) + '%';
 
-            document.getElementById('remainDaysLabel').innerText = daysNeeded;            
-            document.getElementById('noCommonRemainDaysLabel').innerText = noCommonDaysNeeded;
-            document.getElementById('soulRemainDaysLabel').innerText = needDaysSoul;            
-
-            document.getElementById('objectLevelNeeds').innerText = objectNeedFrag;
-            document.getElementById('objectLevelNeedsSoul').innerText = objectNeedSoul;
-
-            document.getElementById('objectLevelNeedsDays').innerText = objectNeedDays;  
-            document.getElementById('objectSoulNeedsDays').innerText = objectNeedDaysSoul;  
-                                 
             // 儲存數據到 localStorage
             localStorage.setItem('skillLevel1', skillLevel1);
             localStorage.setItem('skillLevel2', skillLevel2);
@@ -909,9 +650,6 @@
             localStorage.setItem('remainFragments', remainFragments);
             localStorage.setItem('currentsoul', soul);
             localStorage.setItem('currentsouls', souls);
-            localStorage.setItem('dungeonCompleted', dungeonCompleted);
-            localStorage.setItem('dungeonRewards', dungeonRewards);
-            localStorage.setItem('dungeonSelect', dungeonSelect);
             localStorage.setItem('jobSelect',jobSelect);
         }
         //當頁面加載時讀取 localStorage
@@ -941,9 +679,6 @@
             document.getElementById('remainFragments').value = localStorage.getItem('remainFragments') || 0;
             document.getElementById('currentsoul').value = localStorage.getItem('currentsoul') || 0;
             document.getElementById('currentsouls').value = localStorage.getItem('currentsouls') || 0;
-            document.getElementById('dungeonCompleted').checked = localStorage.getItem('dungeonCompleted') === 'true';
-            document.getElementById('dungeonRewards').value = localStorage.getItem('dungeonRewards') || 0;
-            document.getElementById('dungeonSelect').value = localStorage.getItem('dungeonSelect') || 0;
             document.getElementById('jobSelect').value = localStorage.getItem('jobSelect') || "選擇職業";
             
             // 重新計算以顯示保存的結果
@@ -976,9 +711,6 @@
             document.getElementById('remainFragments').value = 0;
             document.getElementById('currentsoul').value = 0;
             document.getElementById('currentsouls').value = 0;
-            document.getElementById('dungeonCompleted').value = true;
-            document.getElementById('dungeonRewards').value = 0;
-            document.getElementById('dungeonSelect').value = 0;
             document.getElementById('jobSelect').value = "選擇職業";
             localStorage.clear();
             calculate();
